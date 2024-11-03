@@ -11,6 +11,7 @@ module Discordrb
       ping: 1,
       command: 2,
       component: 3,
+      application_command_autocomplete: 4,
       modal_submit: 5
     }.freeze
 
@@ -22,6 +23,7 @@ module Discordrb
       deferred_message: 5,
       deferred_update: 6,
       update_message: 7,
+      autocomplete_result: 8,
       modal: 9
     }.freeze
 
@@ -128,6 +130,10 @@ module Discordrb
     # Defer an update to an interaction. This is can only currently used by Button interactions.
     def defer_update
       Discordrb::API::Interaction.create_interaction_response(@token, @id, CALLBACK_TYPES[:deferred_update])
+    end
+
+    def autocomplete(choices: nil)
+      Discordrb::API::Interaction.create_interaction_autocomplete_response(@token, @id, choices: choices)
     end
 
     # Create a modal as a response.
@@ -470,9 +476,9 @@ module Discordrb
       # @param max_length [Integer] A maximum length for option value.
       # @param choices [Hash, nil] Available choices, mapped as `Name => Value`.
       # @return (see #option)
-      def string(name, description, required: nil, min_length: nil, max_length: nil, choices: nil)
+      def string(name, description, required: nil, min_length: nil, max_length: nil, choices: nil, autocomplete: nil)
         option(TYPES[:string], name, description,
-               required: required, min_length: min_length, max_length: max_length, choices: choices)
+               required: required, min_length: min_length, max_length: max_length, choices: choices, autocomplete: autocomplete)
       end
 
       # @param name [String, Symbol] The name of the argument.
@@ -560,13 +566,13 @@ module Discordrb
       # @param channel_types [Array<Integer>] Channel types that can be provides for channel options.
       # @return Hash
       def option(type, name, description, required: nil, choices: nil, options: nil, min_value: nil, max_value: nil,
-                 min_length: nil, max_length: nil, channel_types: nil)
+                 min_length: nil, max_length: nil, channel_types: nil, autocomplete: nil)
         opt = { type: type, name: name, description: description }
         choices = choices.map { |option_name, value| { name: option_name, value: value } } if choices
 
         opt.merge!({ required: required, choices: choices, options: options, min_value: min_value,
                      max_value: max_value, min_length: min_length, max_length: max_length,
-                     channel_types: channel_types }.compact)
+                     channel_types: channel_types, autocomplete: autocomplete }.compact)
 
         @options << opt
         opt
