@@ -34,6 +34,19 @@ module Discordrb::API::Interaction
     )
   end
 
+  def create_interaction_autocomplete_response(interaction_token, interaction_id, choices: nil)
+    choices = choices.map { |option_name, value| { name: option_name, value: value } } if choices
+    data = { choices: choices }.compact
+    Discordrb::API.request(
+      :interactions_iid_token_callback,
+      interaction_id,
+      :post,
+      "#{Discordrb::API.api_base}/interactions/#{interaction_id}/#{interaction_token}/callback",
+      { type: Discordrb::Interaction::CALLBACK_TYPES[:autocomplete_result], data: data }.to_json,
+      content_type: :json
+    )
+  end
+
   # Get the original response to an interaction.
   # https://discord.com/developers/docs/interactions/slash-commands#get-original-interaction-response
   def get_original_interaction_response(interaction_token, application_id)
